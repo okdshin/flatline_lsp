@@ -120,8 +120,8 @@ class LanguageModelForCompletion:
             tokenized_prompt = self.tokenizer(text).input_ids
             generated_tokens = self.model.generate(inputs=torch.LongTensor(
                 [tokenized_prompt]), max_new_tokens=self.max_new_tokens, do_sample=False,
-                #stopping_criteria=[stop_cutoff_completion, self.stop_word])[0]
-                stopping_criteria=[stop_cutoff_completion])[0]
+                stopping_criteria=[stop_cutoff_completion, self.stop_word])[0]
+            # stopping_criteria=[stop_cutoff_completion])[0]
             generated_text = self.tokenizer.decode(generated_tokens[len(tokenized_prompt):])
         return generated_text
 
