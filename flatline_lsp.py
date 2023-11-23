@@ -24,7 +24,7 @@ class LlamaCppCausalLM(PreTrainedModel):
         self.vocab_size = vocab_size
 
         # self.model = AutoModelForCausalLM.from_pretrained("gpt2")
-        self.plamo_cpp_model = infer.load_model_from_file(model_name, n_threads)
+        self.llama_cpp_model = infer.load_model_from_file(model_name, n_threads)
 
     @property
     def device(self) -> torch.device:
@@ -39,7 +39,7 @@ class LlamaCppCausalLM(PreTrainedModel):
         input_ids: torch.LongTensor,
         **kwargs,
     ) -> CausalLMOutput:
-        logits = torch.from_numpy(self.plamo_cpp_model.calc_next_token_logits(
+        logits = torch.from_numpy(self.llama_cpp_model.calc_next_token_logits(
             input_ids.numpy(), self.vocab_size))
         return CausalLMOutput(
             loss=None,
