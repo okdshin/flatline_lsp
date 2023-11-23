@@ -80,7 +80,8 @@ class StopCutoffCompletion(StoppingCriteria):
     def __call__(self, *args, **kwargs) -> bool:
         with self.latest_completion_id_lock:
             if self.latest_completion_id[0] != self.completion_id:
-                self.lang_server.show_message(f"stop-cutoff-completion {self.completion_id}", lsp.MessageType.Info)
+                self.lang_server.show_message(
+                    f"stop-cutoff-completion {self.completion_id}", lsp.MessageType.Info)
                 return True
             else:
                 return False
