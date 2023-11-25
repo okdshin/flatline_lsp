@@ -1,4 +1,5 @@
 import argparse
+import requests
 from typing import Any, Dict, Optional, List
 import threading
 
@@ -11,20 +12,17 @@ from transformers import (AutoTokenizer, PreTrainedModel,
                           PreTrainedTokenizer, PretrainedConfig, StoppingCriteria)
 from transformers.modeling_outputs import CausalLMOutput
 
-import infer
-
 
 class LlamaCppConfig(PretrainedConfig):  # type: ignore
     model_type: str = "llama_cpp"
 
 
 class LlamaCppCausalLM(PreTrainedModel):
-    def __init__(self, model_name, vocab_size, config: LlamaCppConfig, n_threads: int):
+    def __init__(self, config: LlamaCppConfig, model_name: str, n_threads: int):
         super().__init__(config)
-        self.vocab_size = vocab_size
 
         # self.model = AutoModelForCausalLM.from_pretrained("gpt2")
-        self.llama_cpp_model = infer.load_model_from_file(model_name, n_threads)
+        # self.llama_cpp_model = infer.load_model_from_file(model_name, n_threads)
 
     @property
     def device(self) -> torch.device:
@@ -39,11 +37,11 @@ class LlamaCppCausalLM(PreTrainedModel):
         input_ids: torch.LongTensor,
         **kwargs,
     ) -> CausalLMOutput:
-        logits = torch.from_numpy(self.llama_cpp_model.calc_next_token_logits(
-            input_ids.numpy(), self.vocab_size))
+        res = requests.post("http://0.0.0.0:5000/v1/calc_next_token_logits",
+                            json=dict(input_tokens=input_ids[0].tolist()))
         return CausalLMOutput(
             loss=None,
-            logits=logits,
+            logits=torch.FloatTensor(res.json()["next_token_logits"]).reshape(1, 1, 51200),
             hidden_states=None,
             attentions=None,
         )
@@ -94,8 +92,8 @@ class LanguageModelForCompletion:
         assert model_name.endswith(".gguf")
         self.tokenizer = AutoTokenizer.from_pretrained(
             "Salesforce/codegen25-7b-multi", trust_remote_code=True)
-        self.model = LlamaCppCausalLM(model_name=model_name, vocab_size=len(self.tokenizer),
-                                      config=LlamaCppConfig(), n_threads=n_threads)
+        self.model = LlamaCppCausalLM(
+            model_name=model_name, config=LlamaCppConfig(), n_threads=n_threads)
         self.max_new_tokens = max_new_tokens
 
         self.latest_completion_id_lock = threading.Lock()

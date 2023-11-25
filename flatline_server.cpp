@@ -119,6 +119,7 @@ std::optional<Json::Value> try_to_parse_json(cinatra::request const &req) {
   Json::Value root;
   JSONCPP_STRING err;
   std::string_view body = req.body();
+  logger()->info("request {}", body);
   if (!reader->parse(body.data(), body.data() + body.size(), &root, &err)) {
     return std::nullopt;
   }
@@ -183,6 +184,7 @@ int main(int argc, char **argv) {
       res.set_status_and_content(
           cinatra::status_type::bad_request,
           "\"Content-type\" must be \"application/json\"");
+      logger()->info("Content-type is not application/json");
       return;
     }
     // Data check & parse
@@ -190,6 +192,7 @@ int main(int argc, char **argv) {
     if (!root_opt) {
       res.set_status_and_content(cinatra::status_type::bad_request,
                                  "JSON data is broken");
+      logger()->info("JSON data is broken");
       return;
     }
     Json::Value const &root = *root_opt;
