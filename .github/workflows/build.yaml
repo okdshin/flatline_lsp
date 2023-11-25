@@ -31,19 +31,3 @@ jobs:
         run: |
           cmake -B build -S .
           cmake --build build --config Release
-
-      - name: Prepare model
-        id: prepare_model
-        run: |
-          pip install sentencepiece
-          bash prepare_codegen25_model.sh
-          git lfs install
-          git clone https://huggingface.co/Salesforce/codegen25-7b-multi
-          git clone https://github.com/ggerganov/llama.cpp.git
-          cd ./llama.cpp
-          git checkout b1516
-          pip install -r requirements.txt
-          cmake -B build_llama_cpp -S .
-          cmake --build build_llama_cpp --config Release
-          python3 convert.py ../codegen25-7b-multi --vocab-dir ../dummy_tokenizer
-          ./build_llama_cpp/bin/quantize ../codegen25-7b-multi/ggml-model-f32.gguf 15
