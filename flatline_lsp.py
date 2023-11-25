@@ -2,6 +2,7 @@ import argparse
 import requests
 from typing import Any, Dict, Optional, List
 import threading
+import subprocess
 
 from lsprotocol import types as lsp
 
@@ -18,11 +19,16 @@ class LlamaCppConfig(PretrainedConfig):  # type: ignore
 
 
 class LlamaCppCausalLM(PreTrainedModel):
-    def __init__(self, config: LlamaCppConfig, model_name: str, n_threads: int):
+    def __init__(self, config: LlamaCppConfig, backend_server_host: str, backend_server_port: int, model_name: str, n_threads: int, n_gpu_layers: int):
         super().__init__(config)
 
-        # self.model = AutoModelForCausalLM.from_pretrained("gpt2")
-        # self.llama_cpp_model = infer.load_model_from_file(model_name, n_threads)
+        self.baseckend_server_host = backend_server_host
+        self.baseckend_server_port = backend_server_port
+        try:
+            requests.get(f"http://{self.baseckend_server_host}:{self.baseckend_server_port}")
+        except Exception:
+            subprocess.Popen(
+                f"/home/okada/flatline2/build/bin/flatline-server --model-path {model_name} --n-gpu_layers {n_gpu_layers}".split())
 
     @property
     def device(self) -> torch.device:
@@ -37,7 +43,7 @@ class LlamaCppCausalLM(PreTrainedModel):
         input_ids: torch.LongTensor,
         **kwargs,
     ) -> CausalLMOutput:
-        res = requests.post("http://0.0.0.0:5000/v1/calc_next_token_logits",
+        res = requests.post(f"http://{self.baseckend_server_host}:{self.baseckend_server_port}/v1/calc_next_token_logits",
                             json=dict(input_tokens=input_ids[0].tolist()))
         return CausalLMOutput(
             loss=None,
@@ -86,14 +92,20 @@ class StopCutoffCompletion(StoppingCriteria):
 
 
 class LanguageModelForCompletion:
-    def __init__(self, lang_server: LanguageServer, model_name: str, max_new_tokens: int, n_threads: int):
+    def __init__(self, lang_server: LanguageServer, max_new_tokens: int, backend_server_host: str, backend_server_port: int, model_name: str, n_threads: int, n_gpu_layers: int):
         self.lang_server = lang_server
 
         assert model_name.endswith(".gguf")
         self.tokenizer = AutoTokenizer.from_pretrained(
             "Salesforce/codegen25-7b-multi", trust_remote_code=True)
         self.model = LlamaCppCausalLM(
-            model_name=model_name, config=LlamaCppConfig(), n_threads=n_threads)
+            config=LlamaCppConfig(),
+            backend_server_host=backend_server_host,
+            backend_server_port=backend_server_port,
+            model_name=model_name,
+            n_threads=n_threads,
+            n_gpu_layers=n_gpu_layers,
+        )
         self.max_new_tokens = max_new_tokens
 
         self.latest_completion_id_lock = threading.Lock()
@@ -161,16 +173,25 @@ def completions(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--backend-server-host", type=str, default="localhost")
+    parser.add_argument("--backend-server-port", type=int, default=5000)
     parser.add_argument("--model-name", type=str,
                         default="/home/okada/flatline2/codegen25-7b-multi/ggml-model-Q4_K.gguf")
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--n-threads", type=int, default=8)
+    parser.add_argument("--n-gpu-layers", type=int, default=32)
     args = parser.parse_args()
 
     global lm_for_completion
     lm_for_completion = LanguageModelForCompletion(
         lang_server=server,
-        model_name=args.model_name, max_new_tokens=args.max_new_tokens, n_threads=args.n_threads)
+        max_new_tokens=args.max_new_tokens,
+        backend_server_host=args.backend_server_host,
+        backend_server_port=args.backend_server_port,
+        model_name=args.model_name,
+        n_threads=args.n_threads,
+        n_gpu_layers=args.n_gpu_layers,
+    )
 
     # server.start_tcp("127.0.0.1", 8080)
     server.start_io()
