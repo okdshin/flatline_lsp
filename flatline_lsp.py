@@ -1,4 +1,6 @@
 import argparse
+import sys
+import os
 import requests
 from typing import Any, Dict, Optional, List
 import threading
@@ -27,6 +29,7 @@ class LlamaCppCausalLM(PreTrainedModel):
     def __init__(
         self,
         config: LlamaCppConfig,
+        backend_server_bin: str,
         backend_server_host: str,
         backend_server_port: int,
         model_name: str,
@@ -35,6 +38,7 @@ class LlamaCppCausalLM(PreTrainedModel):
     ):
         super().__init__(config)
 
+        self.baseckend_server_bin = backend_server_bin
         self.baseckend_server_host = backend_server_host
         self.baseckend_server_port = backend_server_port
         try:
@@ -43,7 +47,7 @@ class LlamaCppCausalLM(PreTrainedModel):
             )
         except Exception:
             subprocess.Popen(
-                f"/home/okada/flatline2/build/bin/flatline-server --model-path {model_name} --n-gpu_layers {n_gpu_layers}".split()
+                f"{self.baseckend_server_bin} --model-path {model_name} --n-gpu_layers {n_gpu_layers}".split()
             )
 
     @property
@@ -123,6 +127,7 @@ class LanguageModelForCompletion:
         self,
         lang_server: LanguageServer,
         max_new_tokens: int,
+        backend_server_bin: str,
         backend_server_host: str,
         backend_server_port: int,
         model_name: str,
@@ -130,6 +135,7 @@ class LanguageModelForCompletion:
         n_gpu_layers: int,
     ):
         self.lang_server = lang_server
+        self.max_new_tokens = max_new_tokens
 
         assert model_name.endswith(".gguf")
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -137,13 +143,13 @@ class LanguageModelForCompletion:
         )
         self.model = LlamaCppCausalLM(
             config=LlamaCppConfig(),
+            backend_server_bin=backend_server_bin,
             backend_server_host=backend_server_host,
             backend_server_port=backend_server_port,
             model_name=model_name,
             n_threads=n_threads,
             n_gpu_layers=n_gpu_layers,
         )
-        self.max_new_tokens = max_new_tokens
 
         self.latest_completion_id_lock = threading.Lock()
         self.computing_resource_lock = threading.Lock()
@@ -221,14 +227,23 @@ def completions(
     )
 
 
+def resource_path(relative_path: str):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--backend-server-bin", type=str, default=resource_path("./flatline/backend_server/flatline-server"))
     parser.add_argument("--backend-server-host", type=str, default="localhost")
     parser.add_argument("--backend-server-port", type=int, default=5000)
     parser.add_argument(
         "--model-name",
         type=str,
-        default="/home/okada/flatline2/codegen25-7b-multi/ggml-model-Q4_K.gguf",
+        default=resource_path("./flatline/model_data/codegen25-7b-multi/ggml-model-Q4_K.gguf"),
     )
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--n-threads", type=int, default=8)
@@ -239,6 +254,7 @@ def main() -> None:
     lm_for_completion = LanguageModelForCompletion(
         lang_server=server,
         max_new_tokens=args.max_new_tokens,
+        backend_server_bin=args.backend_server_bin,
         backend_server_host=args.backend_server_host,
         backend_server_port=args.backend_server_port,
         model_name=args.model_name,

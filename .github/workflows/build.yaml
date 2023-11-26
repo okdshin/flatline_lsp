@@ -25,9 +25,59 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake libpython3-dev
+          pip3 install torch --index-url https://download.pytorch.org/whl/cpu
+          pip3 install transformers tiktoken pyinstaller
 
-      - name: Build
-        id: cmake_build
+      - name: Build backend server
+        id: cmake_build_backend_server
         run: |
-          cmake -B build -S .
-          cmake --build build --config Release
+          cmake -B build_backend_server -S .
+          cmake --build build_backend_server --config Release
+
+      - name: Build lsp server
+        id: pyinstaller_build_lsp_server
+        run: |
+          pyinstaller flatline_lsp.py \
+            --copy-metadata tqdm \
+            --copy-metadata regex \
+            --copy-metadata requests \
+            --copy-metadata packaging \
+            --copy-metadata filelock \
+            --copy-metadata numpy \
+            --copy-metadata tokenizers \
+            --copy-metadata huggingface-hub \
+            --copy-metadata safetensors \
+            --copy-metadata pyyaml \
+            --copy-metadata torch \
+            --hidden-import=tiktoken_ext.openai_public \
+            --hidden-import=tiktoken_ext \
+            --add-binary build_backend_server/bin/flatline-server:flatline/backend_server \
+            ;
+          mkdir -p ./dist/flatline/license
+          find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline/license/
+          zip -r flatline_lsp.zip dist/flatline_lsp
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Release test
+          draft: true
+          prerelease: true
+
+      - name: Upload Release Asset
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./flatline_lsp.zip
+          asset_name: flatline_lsp.zip
+          asset_content_type: application/zip
+
