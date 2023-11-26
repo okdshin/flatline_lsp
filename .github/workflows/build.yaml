@@ -12,7 +12,7 @@ on:
       - main
 
 jobs:
-  release-ubuntu-2004:
+  release-ubuntu-2004-openblas:
     runs-on: ubuntu-20.04
 
     steps:
@@ -24,7 +24,7 @@ jobs:
         id: depends
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libpython3-dev
+          sudo apt-get install -y build-essential libpython3-dev libopenblas-dev
           python3 -m pip install cmake
           python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python3 -m pip install transformers tiktoken pyinstaller
@@ -32,7 +32,7 @@ jobs:
       - name: Build backend server
         id: cmake_build_backend_server
         run: |
-          cmake -B build_backend_server -S .
+          cmake -B build_backend_server -S . -DLLAMA_NATIVE=OFF -DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS
           cmake --build build_backend_server --config Release
 
       - name: Build lsp server
