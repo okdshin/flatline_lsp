@@ -58,7 +58,7 @@ target_compile_definitions(cinatra INTERFACE -DASIO_STANDALONE)
 add_executable(${PROJECT_NAME}-server
                ${CMAKE_CURRENT_SOURCE_DIR}/flatline_server.cpp)
 set_target_properties(${PROJECT_NAME}-server PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
-target_link_libraries(${PROJECT_NAME}-server PRIVATE llama ggml cinatra jsoncpp_static structopt spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME}-server PRIVATE llama ggml cinatra jsoncpp_static structopt spdlog::spdlog "stdc++fs")
 add_custom_command(
     TARGET ${PROJECT_NAME}-server
     POST_BUILD
