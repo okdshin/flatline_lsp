@@ -77,7 +77,7 @@ jobs:
           mkdir -p ./dist/flatline_lsp/license
           find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
           cd dist
-          zip -r flatline_lsp_${{ matrix.build }}.zip flatline_lsp
+          zip -r flatline_lsp_ubuntu2004_${{ matrix.build }}.zip flatline_lsp
 
       - name: Create release
         id: create_release
