@@ -12,8 +12,8 @@ on:
       - main
 
 jobs:
-  release-ubuntu-1804:
-    runs-on: ubuntu-18.04
+  release-ubuntu-2004:
+    runs-on: ubuntu-20.04
 
     strategy:
       matrix:
@@ -32,13 +32,10 @@ jobs:
         id: depends
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential gcc-8 g++-8 python3.8 libpython3.8-dev python3-pip
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 700 --slave /usr/bin/g++ g++ /usr/bin/g++-7
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8
-          python3.8 -m pip install -U pip
-          python3.8 -m pip install cmake
-          python3.8 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-          python3.8 -m pip install transformers tiktoken pyinstaller
+          sudo apt-get install -y build-essential libpython3-dev
+          python3 -m pip install cmake
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install transformers tiktoken pyinstaller
 
       - name: Dependencies
         id: depends_openblas
