@@ -53,9 +53,10 @@ jobs:
             --hidden-import=tiktoken_ext \
             --add-binary build_backend_server/bin/flatline-server:flatline/backend_server \
             ;
-          mkdir -p ./dist/flatline/license
-          find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline/license/
-          zip -r flatline_lsp.zip dist/flatline_lsp
+          mkdir -p ./dist/flatline_lsp/license
+          find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
+          cd dist
+          zip -r flatline_lsp.zip flatline_lsp
 
       - name: Create release
         id: create_release
@@ -70,14 +71,14 @@ jobs:
           draft: true
           prerelease: true
 
-      - name: Upload Release Asset
+      - name: Upload release asset
         id: upload_release_asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./flatline_lsp.zip
+          asset_path: ./dist/flatline_lsp.zip
           asset_name: flatline_lsp.zip
           asset_content_type: application/zip
 
