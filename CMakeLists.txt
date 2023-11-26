@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 project(flatline C CXX)
 set(CMAKE_CXX_STANDARD 20)

@@ -12,8 +12,8 @@ on:
       - main
 
 jobs:
-  ubuntu-latest:
-    runs-on: ubuntu-latest
+  release-ubuntu-2004:
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Clone
@@ -24,9 +24,10 @@ jobs:
         id: depends
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libpython3-dev
-          pip3 install torch --index-url https://download.pytorch.org/whl/cpu
-          pip3 install transformers tiktoken pyinstaller
+          sudo apt-get install -y build-essential libpython3-dev
+          python3 -m pip install cmake
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install transformers tiktoken pyinstaller
 
       - name: Build backend server
         id: cmake_build_backend_server
