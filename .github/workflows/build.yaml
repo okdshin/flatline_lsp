@@ -28,7 +28,7 @@ jobs:
         id: checkout
         uses: actions/checkout@v1
 
-      - name: Dependencies
+      - name: Common dependencies
         id: depends
         run: |
           sudo apt-get update
@@ -37,7 +37,7 @@ jobs:
           python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python3 -m pip install transformers tiktoken pyinstaller
 
-      - name: Dependencies
+      - name: OpenBLAS dependencies
         id: depends_openblas
         if: ${{ matrix.build == 'openblas' }}
         run: |
