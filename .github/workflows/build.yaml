@@ -99,6 +99,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/flatline_lsp_${{ matrix.build }}.zip
-          asset_name: flatline_lsp_${{ matrix.build }}.zip
+          asset_path: ./dist/flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
+          asset_name: flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
           asset_content_type: application/zip
