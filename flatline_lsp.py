@@ -75,6 +75,7 @@ class LlamaCppCausalLM(PreTrainedModel):
             f"http://{self.baseckend_server_host}:{self.baseckend_server_port}/v1/calc_next_token_logits",
             json=dict(input_tokens=input_ids[0].tolist()),
         )
+        res.raise_for_status()
         return CausalLMOutput(
             loss=None,
             logits=torch.FloatTensor(res.json()["next_token_logits"]).reshape(
