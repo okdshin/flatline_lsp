@@ -35,7 +35,7 @@ jobs:
           sudo apt-get install -y build-essential libpython3-dev
           python3 -m pip install cmake
           python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-          python3 -m pip install transformers tiktoken pyinstaller
+          python3 -m pip install transformers==4.33.3 tiktoken pygls pyinstaller
 
       - name: OpenBLAS dependencies
         id: depends_openblas
