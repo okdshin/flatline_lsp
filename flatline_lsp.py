@@ -1,4 +1,5 @@
 import argparse
+import time
 import sys
 import os
 import requests
@@ -49,6 +50,13 @@ class LlamaCppCausalLM(PreTrainedModel):
             subprocess.Popen(
                 f"{self.baseckend_server_bin} --model-path {model_name} --n-gpu_layers {n_gpu_layers}".split()
             )
+            while True:
+                res = requests.get(
+                    f"http://{self.baseckend_server_host}:{self.baseckend_server_port}"
+                )
+                if res.status_code == 200:
+                    break
+                time.sleep(1)
 
     @property
     def device(self) -> torch.device:
