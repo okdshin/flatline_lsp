@@ -74,7 +74,7 @@ jobs:
             --hidden-import=tiktoken_ext \
             ;
           mkdir -p ./dist/flatline_lsp/flatline
-          mv build_backend_server/bin/flatline-server ./dist/flatline_lsp/flatline/backend_server \
+          mv build_backend_server/bin/flatline-server ./dist/flatline_lsp/flatline/backend_server
           mkdir -p ./dist/flatline_lsp/license
           find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
           cd dist
