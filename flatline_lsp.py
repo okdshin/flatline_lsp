@@ -245,14 +245,34 @@ def resource_path(relative_path: str):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--backend-server-bin", type=str, default=resource_path("./flatline/backend_server/flatline-server"))
-    parser.add_argument("--backend-server-host", type=str, default="localhost")
-    parser.add_argument("--backend-server-port", type=int, default=5000)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--backend-server-bin",
+        type=str,
+        help="llm inference backend server binary path",
+        default=resource_path("./flatline/backend_server/flatline-server"),
+    )
+    parser.add_argument(
+        "--backend-server-host",
+        type=str,
+        help="llm inference backend server host name",
+        default="localhost",
+    )
+    parser.add_argument(
+        "--backend-server-port",
+        type=int,
+        help="llm inference backend server port number",
+        default=5000,
+    )
     parser.add_argument(
         "--model-name",
         type=str,
-        default=resource_path("./flatline/model_data/codegen25-7b-multi/ggml-model-Q4_K.gguf"),
+        help="model name or path",
+        default=resource_path(
+            "./flatline/model_data/codegen25-7b-multi/ggml-model-Q4_K.gguf"
+        ),
     )
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--n-threads", type=int, default=8)
