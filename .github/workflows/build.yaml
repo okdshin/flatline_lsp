@@ -73,8 +73,9 @@ jobs:
             --hidden-import=tiktoken_ext.openai_public \
             --hidden-import=tiktoken_ext \
             ;
-          mkdir -p ./dist/flatline_lsp/flatline
-          mv build_backend_server/bin/flatline-server ./dist/flatline_lsp/_internal/flatline/backend_server
+          mkdir -p ./dist/flatline_lsp/_internal/flatline/model_data
+          mkdir -p ./dist/flatline_lsp/_internal/flatline/backend_server
+          mv build_backend_server/bin/flatline-server ./dist/flatline_lsp/_internal/flatline/backend_server/flatline-server
           mkdir -p ./dist/flatline_lsp/license
           find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
           cd dist
