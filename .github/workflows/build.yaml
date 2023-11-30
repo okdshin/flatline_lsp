@@ -80,14 +80,18 @@ jobs:
           cd dist
           zip -ry flatline_lsp_ubuntu2004_${{ matrix.build }}.zip flatline_lsp
 
+      - name: Get Commit ID
+        id: get_commit_id
+        run: echo ::set-output name=commit_id::$(git log -1 --format=%h)
+
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v0.0.0
-          release_name: Release v0.0.0
+          tag_name: v0.0.0_${{ steps.get_commit_id.outputs.commit_id }}
+          release_name: Release v0.0.0_${{ steps.get_commit_id.outputs.commit_id }}
           body: |
             Release test
           draft: false
