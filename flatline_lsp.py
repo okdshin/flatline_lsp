@@ -39,17 +39,17 @@ class LlamaCppCausalLM(PreTrainedModel):
     ):
         super().__init__(config)
 
-        self.baseckend_server_bin = backend_server_bin
-        self.baseckend_server_host = backend_server_host
-        self.baseckend_server_port = backend_server_port
+        self.backend_server_bin = backend_server_bin
+        self.backend_server_host = backend_server_host
+        self.backend_server_port = backend_server_port
         try:
             requests.get(
-                f"http://{self.baseckend_server_host}:{self.baseckend_server_port}"
+                f"http://{self.backend_server_host}:{self.backend_server_port}"
             )
         except Exception:
             subprocess.Popen(
                 (
-                    f"{self.baseckend_server_bin}"
+                    f"{self.backend_server_bin}"
                     f" --port {self.backend_server_port}"
                     f" --model-path {model_name}"
                     f" --n-threads {n_threads}"
@@ -58,7 +58,7 @@ class LlamaCppCausalLM(PreTrainedModel):
             )
             while True:
                 res = requests.get(
-                    f"http://{self.baseckend_server_host}:{self.baseckend_server_port}"
+                    f"http://{self.backend_server_host}:{self.backend_server_port}"
                 )
                 if res.status_code == 200:
                     break
@@ -78,7 +78,7 @@ class LlamaCppCausalLM(PreTrainedModel):
         **kwargs,
     ) -> CausalLMOutput:
         res = requests.post(
-            f"http://{self.baseckend_server_host}:{self.baseckend_server_port}/v1/calc_next_token_logits",
+            f"http://{self.backend_server_host}:{self.backend_server_port}/v1/calc_next_token_logits",
             json=dict(input_tokens=input_ids[0].tolist()),
         )
         res.raise_for_status()
