@@ -126,7 +126,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: flatline_lsp_ubuntu2004_openblas.zip
+          asset_path: flatline_lsp_ubuntu2004_openblas.zip/flatline_lsp_ubuntu2004_openblas.zip
           asset_name: flatline_lsp_ubuntu2004_openblas.zip
           asset_content_type: application/zip
 
@@ -137,6 +137,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: flatline_lsp_ubuntu2004_cublas.zip
+          asset_path: flatline_lsp/flatline_lsp_ubuntu2004_cublas.zip/flatline_lsp_ubuntu2004_cublas.zip
           asset_name: flatline_lsp_ubuntu2004_cublas.zip
           asset_content_type: application/zip
