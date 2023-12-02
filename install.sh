@@ -1,5 +1,15 @@
 #!/usr/bin/bash
-#set -eux
+set -eu
+#set -x
+
+release_version="v0.0.0_a1651ec"
+
+if [ $# -ne 1 ]; then
+    echo "$0 <openblas or cublas>"
+    exit 1
+fi
+
+release_type=$1
 
 target_dir="$HOME/.flatline_lsp"
 if [ -d "$target_dir" ]; then
@@ -18,8 +28,16 @@ trap 'cleanup' EXIT
 cd "$tmp_dir"
 
 echo "Download release"
-curl -L -o flatline_lsp.zip \
-    https://github.com/okdshin/flatline_lsp/releases/download/v0.0.0_a1651ec/flatline_lsp_ubuntu2004_openblas.zip
+if [ "$release_type" == "openblas" ]; then
+    curl -L -o flatline_lsp.zip \
+        "https://github.com/okdshin/flatline_lsp/releases/download/${release_version}/flatline_lsp_ubuntu2004_openblas.zip"
+elif [ "$release_type" == "cublas" ]; then
+    curl -L -o flatline_lsp.zip \
+        "https://github.com/okdshin/flatline_lsp/releases/download/${release_version}/flatline_lsp_ubuntu2004_cublas.zip"
+else
+    echo "$release_type is not supported. Please specify 'openblas' or 'cublas'"
+    exit 1
+fi
 unzip flatline_lsp.zip > /dev/null
 
 echo "Download model"
