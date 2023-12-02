@@ -140,3 +140,59 @@ jobs:
           asset_path: flatline_lsp_ubuntu2004_cublas.zip/flatline_lsp_ubuntu2004_cublas.zip
           asset_name: flatline_lsp_ubuntu2004_cublas.zip
           asset_content_type: application/zip
+
+  test-on-ubuntu-2004:
+    runs-on: ubuntu-20.04
+    needs: [build-release-ubuntu-2004]
+    steps:
+      - name: Common dependencies
+        id: depends
+        run: |
+          sudo apt-get update
+
+      - name: OpenBLAS dependencies
+        id: depends_openblas
+        if: ${{ matrix.build == 'openblas' }}
+        run: |
+          sudo apt-get install -y libopenblas0
+
+      - uses: Jimver/cuda-toolkit@v0.2.10
+        id: cuda-toolkit
+        if: ${{ matrix.build == 'cublas' }}
+        with:
+          cuda: '11.8.0'
+
+      - name: Install and test
+        id: install_and_test
+        run: |
+          curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s ${{ matrix.build }}
+          $HOME/.flatline_lsp/_internal/flatline/backend_server/flatline-server --help
+          $HOME/.flatline_lsp/flatline_lsp --help
+
+  test-on-ubuntu-2204:
+    runs-on: ubuntu-22.04
+    needs: [build-release-ubuntu-2004]
+    steps:
+      - name: Common dependencies
+        id: depends
+        run: |
+          sudo apt-get update
+
+      - name: OpenBLAS dependencies
+        id: depends_openblas
+        if: ${{ matrix.build == 'openblas' }}
+        run: |
+          sudo apt-get install -y libopenblas0
+
+      - uses: Jimver/cuda-toolkit@v0.2.10
+        id: cuda-toolkit
+        if: ${{ matrix.build == 'cublas' }}
+        with:
+          cuda: '11.8.0'
+
+      - name: Install and test
+        id: install_and_test
+        run: |
+          curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s ${{ matrix.build }}
+          $HOME/.flatline_lsp/_internal/flatline/backend_server/flatline-server --help
+          $HOME/.flatline_lsp/flatline_lsp --help

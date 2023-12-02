@@ -2,7 +2,7 @@
 set -eu
 #set -x
 
-release_version="v0.0.0_a1651ec"
+release_version="v0.0.0_08d28ca"
 
 if [ $# -ne 1 ]; then
     echo "$0 <openblas or cublas>"
