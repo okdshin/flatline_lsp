@@ -15,7 +15,7 @@ Please choose "openblas" or "cublas" and replace `<backend_type>` with it.
 - openblas: for CPU, slow
 - cublas: for NVIDIA GPU, fast
 
-### For Ubuntu20.04
+### For Ubuntu20.04 & 22.04
 
 #### Requirements
 
@@ -34,8 +34,6 @@ Install CUDA library. See https://developer.nvidia.com/cuda-toolkit
 #### Install flatline_lsp
 
 ```sh
-# This command download `flatline_lsp_ubuntu2004_<backend_type>.zip` and unzip it to `$HOME/.flatline_lsp`
-# then download model data and setup it
 curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s -- -b <backend_type>
 ```
 
@@ -46,7 +44,7 @@ curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh |
 rm -R $HOME/.flatline_lsp
 ```
 
-## Setup
+## Editor setup
 
 ### Neovim
 
