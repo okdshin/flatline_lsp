@@ -83,6 +83,7 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
+    steps:
       - name: Get Commit ID
         id: get_commit_id
         run: echo ::set-output name=commit_id::$(git log -1 --format=%h)
