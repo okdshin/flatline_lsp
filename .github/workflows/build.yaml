@@ -86,7 +86,7 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
-    needs: [build-release-ubuntu2004]
+    needs: [build-release-ubuntu-2004]
     steps:
       - name: Get Commit ID
         id: get_commit_id
