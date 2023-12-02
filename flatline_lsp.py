@@ -301,7 +301,6 @@ def main() -> None:
         n_gpu_layers=args.n_gpu_layers,
     )
 
-    # server.start_tcp("127.0.0.1", 8080)
     server.start_io()
 
 
