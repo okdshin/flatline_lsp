@@ -12,7 +12,7 @@ on:
       - main
 
 jobs:
-  release-ubuntu-2004:
+  build-release-ubuntu-2004:
     runs-on: ubuntu-20.04
 
     strategy:
@@ -81,6 +81,8 @@ jobs:
           cd dist
           zip -ry flatline_lsp_ubuntu2004_${{ matrix.build }}.zip flatline_lsp
 
+  create-release:
+    runs-on: ubuntu-latest
       - name: Get Commit ID
         id: get_commit_id
         run: echo ::set-output name=commit_id::$(git log -1 --format=%h)
@@ -98,13 +100,24 @@ jobs:
           draft: false
           prerelease: true
 
-      - name: Upload release asset
-        id: upload_release_asset
+      - name: Upload release openblas asset
+        id: upload_release_openblas_asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
-          asset_name: flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
+          asset_path: ./dist/flatline_lsp_ubuntu2004_openblas.zip
+          asset_name: flatline_lsp_ubuntu2004_openblas.zip
+          asset_content_type: application/zip
+
+      - name: Upload release cublas asset
+        id: upload_release_cublas_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/flatline_lsp_ubuntu2004_cublas.zip
+          asset_name: flatline_lsp_ubuntu2004_cublas.zip
           asset_content_type: application/zip
