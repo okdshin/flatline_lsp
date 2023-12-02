@@ -18,7 +18,7 @@ Please choose "openblas" or "cublas" and replace `<release_type>` with it.
 Install OpenBLAS library.
 
 ```sh
-sudo apt-get install libopenblas
+sudo apt-get install libopenblas0
 ```
 
 ##### cublas
