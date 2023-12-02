@@ -91,7 +91,7 @@ jobs:
       - name: Get Commit ID
         id: get_commit_id
         run: |
-          COMMIT_ID=$(git rev-parse --short ${{ github.sha }})
+          COMMIT_ID=$(echo ${{ github.sha }} | head -c 7)
           echo "::set-output name=commit_id::${COMMIT_ID}"
 
       - name: Create release
