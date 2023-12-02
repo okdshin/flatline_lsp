@@ -23,12 +23,13 @@ sudo apt-get install libopenblas
 
 ##### cublas
 
-Install CUDA library.
+Install CUDA library. See https://developer.nvidia.com/cuda-toolkit
 
 #### Install flatline_lsp
 
 ```sh
 # This command download `flatline_lsp_ubuntu2004_<release_type>.zip` and unzip it to `$HOME/.flatline_lsp`
+# then download model data and setup it
 curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s <release_type>
 ```
 
