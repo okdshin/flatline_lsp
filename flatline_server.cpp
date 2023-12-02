@@ -148,7 +148,7 @@ std::string make_response_json(std::vector<float> const &next_token_logits) {
 
 #include <structopt/app.hpp>
 struct app_options {
-  std::optional<std::string> port = "5000";
+  std::optional<std::string> port = "57045";
   std::optional<std::string> model_path;
   std::optional<bool> numa = true;
   std::optional<int> n_gpu_layers = 0;

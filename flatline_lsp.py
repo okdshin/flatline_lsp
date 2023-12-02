@@ -265,7 +265,7 @@ def main() -> None:
         "--backend-server-port",
         type=int,
         help="llm inference backend server port number",
-        default=5000,
+        default=57045,
     )
     parser.add_argument(
         "--tokenizer-name",
