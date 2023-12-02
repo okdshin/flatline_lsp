@@ -2,14 +2,30 @@
 
 LSP code completion server with local LLM powered by llama.cpp
 
-# Install (& Uninstall)
+## Install
 
 Please choose "openblas" or "cublas" and replace `<release_type>` with it.
 
 - openblas: for CPU, slow
 - cublas: for NVIDIA GPU, fast
 
-## For Ubuntu20.04
+### For Ubuntu20.04
+
+#### Requirements
+
+##### openblas
+
+Install OpenBLAS library.
+
+```sh
+sudo apt-get install libopenblas
+```
+
+##### cublas
+
+Install CUDA library.
+
+#### Install flatline_lsp
 
 ```sh
 # This command download `flatline_lsp_ubuntu2004_<release_type>.zip` and unzip it to `$HOME/.flatline_lsp`
@@ -19,9 +35,9 @@ curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh |
 rm -R $HOME/.flatline_lsp
 ```
 
-# Setup
+## Setup
 
-## Neovim
+### Neovim
 
 Add this snippet to `plugins.lua`
 
