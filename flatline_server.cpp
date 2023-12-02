@@ -151,18 +151,20 @@ struct app_options {
   std::optional<std::string> port = "57045";
   std::optional<std::string> model_path;
   std::optional<bool> numa = true;
-  std::optional<int> n_gpu_layers = 0;
+  std::optional<int> n_threads = -1;
+  std::optional<int> n_gpu_layers = 35;
 };
-STRUCTOPT(app_options, port, model_path, numa, n_gpu_layers);
+STRUCTOPT(app_options, port, model_path, numa, n_threads, n_gpu_layers);
 
 int main(int argc, char **argv) {
   auto options = structopt::app("flatline").parse<app_options>(argc, argv);
   if (!options.model_path) {
     throw std::runtime_error("wrong model_path");
   }
-  const size_t max_thread_num = std::thread::hardware_concurrency();
   const size_t server_thread_num = 1; // Must be 1
-  const size_t infer_thread_num = max_thread_num - server_thread_num;
+  const size_t max_thread_num = std::thread::hardware_concurrency();
+  const size_t infer_thread_num =
+      *options.n_threads < 0 ? max_thread_num / 2 : *options.n_threads;
 
   llama_backend_init(*options.numa);
 
