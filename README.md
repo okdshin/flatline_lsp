@@ -68,3 +68,11 @@ local setup_flatline_lsp = function()
 end
 setup_flatline_lsp()
 ```
+
+## Backend server
+
+`flatline_lsp` depends on `flatline-server` (It is `$HOME/.flatline_lsp/\_internal/flatline/backend_server/flatline-server`) and `flatline_lsp` automatically starts `flatline-server` when it is not started yet.
+
+The process of `flatline-server` does not stop even when `flatline_lsp` is stopped. So if you want to stop `flatline-server` and release the resources (e.g. GPU memory), please kill the `flatline-server` process manually.
+
+TODO prepare more sophisticated method
