@@ -30,7 +30,11 @@ Install CUDA library.
 ```sh
 # This command download `flatline_lsp_ubuntu2004_<release_type>.zip` and unzip it to `$HOME/.flatline_lsp`
 curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s <release_type>
+```
 
+#### Uninstall flatline_lsp
+
+```sh
 # Uninstall: Just remove `$HOME/.flatline_lsp`
 rm -R $HOME/.flatline_lsp
 ```
