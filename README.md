@@ -55,7 +55,7 @@ Add this snippet to `plugins.lua`
 ```lua
 local setup_flatline_lsp = function()
     vim.api.nvim_create_autocmd('FileType', {
-        pattern = {'cpp', 'python'},
+        pattern = {'cpp', 'python'}, --other languages supported by the model can be added here
         callback = function()
             vim.lsp.start({
                 name = 'flatline_lsp',
