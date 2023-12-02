@@ -277,9 +277,7 @@ def main() -> None:
         "--tokenizer-name",
         type=str,
         help="tokenizer name or path",
-        default=resource_path(
-            "./flatline/model_data/codegen25-7b-multi"
-        ),
+        default=resource_path("./flatline/model_data/codegen25-7b-multi"),
     )
     parser.add_argument(
         "--model-name",
