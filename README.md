@@ -2,6 +2,12 @@
 
 LSP code completion server with local LLM powered by llama.cpp
 
+## About model
+
+Flatline LSP uses CodeGen2.5 released under Apache v2 License by Salesforce.
+
+https://huggingface.co/sokada/codegen25-7b-multi-gguf-with-dummy-tokenizer
+
 ## Install
 
 Please choose "openblas" or "cublas" and replace `<release_type>` with it.
