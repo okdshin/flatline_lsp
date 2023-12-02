@@ -150,6 +150,12 @@ jobs:
           - build: 'openblas'
           - build: 'cublas'
     steps:
+      - name: Get Commit ID
+        id: get_commit_id
+        run: |
+          COMMIT_ID=$(echo ${{ github.sha }} | head -c 7)
+          echo "::set-output name=commit_id::${COMMIT_ID}"
+
       - name: Common dependencies
         id: depends
         run: |
@@ -170,7 +176,7 @@ jobs:
       - name: Install and test
         id: install_and_test
         run: |
-          curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s ${{ matrix.build }}
+          curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s -- -b ${{ matrix.build }} -r v0.0.0_${{ steps.get_commit_id.outputs.commit_id }}
           $HOME/.flatline_lsp/_internal/flatline/backend_server/flatline-server --help
           $HOME/.flatline_lsp/flatline_lsp --help
 
@@ -183,6 +189,12 @@ jobs:
           - build: 'openblas'
           - build: 'cublas'
     steps:
+      - name: Get Commit ID
+        id: get_commit_id
+        run: |
+          COMMIT_ID=$(echo ${{ github.sha }} | head -c 7)
+          echo "::set-output name=commit_id::${COMMIT_ID}"
+
       - name: Common dependencies
         id: depends
         run: |
@@ -203,6 +215,6 @@ jobs:
       - name: Install and test
         id: install_and_test
         run: |
-          curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s ${{ matrix.build }}
+          curl -L https://raw.githubusercontent.com/okdshin/flatline_lsp/main/install.sh | bash -s -- -b ${{ matrix.build }} -r v0.0.0_${{ steps.get_commit_id.outputs.commit_id }}
           $HOME/.flatline_lsp/_internal/flatline/backend_server/flatline-server --help
           $HOME/.flatline_lsp/flatline_lsp --help
