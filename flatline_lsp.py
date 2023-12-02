@@ -48,7 +48,13 @@ class LlamaCppCausalLM(PreTrainedModel):
             )
         except Exception:
             subprocess.Popen(
-                f"{self.baseckend_server_bin} --model-path {model_name} --n-threads {n_threads} --n-gpu_layers {n_gpu_layers}".split()
+                (
+                    f"{self.baseckend_server_bin}"
+                    f" --port {self.backend_server_port}"
+                    f" --model-path {model_name}"
+                    f" --n-threads {n_threads}"
+                    f" --n-gpu_layers {n_gpu_layers}"
+                ).split()
             )
             while True:
                 res = requests.get(
