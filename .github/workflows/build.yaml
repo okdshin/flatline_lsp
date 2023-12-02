@@ -90,7 +90,7 @@ jobs:
     steps:
       - name: Get Commit ID
         id: get_commit_id
-        run: echo ::set-output name=commit_id::$(git log -1 --format=%h)
+        run: echo ::set-output name=commit_id::$(git rev-parse --short "$GITHUB_SHA")
 
       - name: Create release
         id: create_release
