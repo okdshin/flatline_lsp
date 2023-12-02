@@ -27,7 +27,7 @@ trap 'cleanup' EXIT
 
 cd "$tmp_dir"
 
-echo "Download release"
+echo "Download release..."
 if [ "$release_type" == "openblas" ]; then
     curl -L -o flatline_lsp.zip \
         "https://github.com/okdshin/flatline_lsp/releases/download/${release_version}/flatline_lsp_ubuntu2004_openblas.zip"
@@ -40,10 +40,19 @@ else
 fi
 unzip flatline_lsp.zip > /dev/null
 
-echo "Download model"
+echo "Download tokenizer..."
+mkdir -p flatline_lsp/_internal/flatline/model_data/codegen25-7b-multi
+curl -L -o flatline_lsp/_internal/flatline/model_data/codegen25-7b-multi/tokenization_codegen25.py \
+    https://huggingface.co/sokada/codegen25-7b-multi-gguf-with-dummy-tokenizer/resolve/main/tokenization_codegen25.py?download=true
+curl -L -o flatline_lsp/_internal/flatline/model_data/codegen25-7b-multi/tokenizer_config.json \
+    https://huggingface.co/sokada/codegen25-7b-multi-gguf-with-dummy-tokenizer/resolve/main/tokenizer_config.json?download=true
+
+echo "Download model..."
 mkdir -p flatline_lsp/_internal/flatline/model_data/codegen25-7b-multi
 curl -L -o flatline_lsp/_internal/flatline/model_data/codegen25-7b-multi/ggml-model-Q4_K.gguf \
     https://huggingface.co/sokada/codegen25-7b-multi-gguf-with-dummy-tokenizer/resolve/main/ggml-model-Q4_K.gguf?download=true
 
-echo "Create $target_dir"
+echo "Create $target_dir..."
 mv flatline_lsp "$target_dir"
+
+echo "flatline-lsp installation finished!"

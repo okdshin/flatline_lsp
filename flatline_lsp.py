@@ -139,6 +139,7 @@ class LanguageModelForCompletion:
         backend_server_bin: str,
         backend_server_host: str,
         backend_server_port: int,
+        tokenizer_name: str,
         model_name: str,
         n_threads: int,
         n_gpu_layers: int,
@@ -146,10 +147,10 @@ class LanguageModelForCompletion:
         self.lang_server = lang_server
         self.max_new_tokens = max_new_tokens
 
-        assert model_name.endswith(".gguf")
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "Salesforce/codegen25-7b-multi", trust_remote_code=True
+            tokenizer_name, trust_remote_code=True
         )
+        assert model_name.endswith(".gguf")
         self.model = LlamaCppCausalLM(
             config=LlamaCppConfig(),
             backend_server_bin=backend_server_bin,
@@ -267,6 +268,14 @@ def main() -> None:
         default=5000,
     )
     parser.add_argument(
+        "--tokenizer-name",
+        type=str,
+        help="tokenizer name or path",
+        default=resource_path(
+            "./flatline/model_data/codegen25-7b-multi"
+        ),
+    )
+    parser.add_argument(
         "--model-name",
         type=str,
         help="model name or path",
@@ -286,6 +295,7 @@ def main() -> None:
         backend_server_bin=args.backend_server_bin,
         backend_server_host=args.backend_server_host,
         backend_server_port=args.backend_server_port,
+        tokenizer_name=args.tokenizer_name,
         model_name=args.model_name,
         n_threads=args.n_threads,
         n_gpu_layers=args.n_gpu_layers,
