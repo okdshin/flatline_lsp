@@ -116,6 +116,29 @@ class StopWord(StoppingCriteria):
         return suffix_text.endswith(self.stop_word)
 
 
+class CountStopWord(StoppingCriteria):
+    def __init__(
+        self,
+        stop_word: str,
+        tokenizer: PreTrainedTokenizer,
+        initial_length: int,
+        stop_word_count: int,
+        min_n_tokens: int,
+    ):
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.stop_word = stop_word
+        self.initial_length = initial_length
+        self.stop_word_count = stop_word_count
+        self.min_n_tokens = min_n_tokens
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> bool:
+        if len(input_ids[0]) < self.min_n_tokens:
+            return False
+        generated_text: str = self.tokenizer.decode(input_ids[0])[self.initial_length:]
+        return generated_text.count(self.stop_word) >= self.stop_word_count
+
+
 class StopCutoffCompletion(StoppingCriteria):
     def __init__(
         self,
@@ -174,9 +197,9 @@ class LanguageModelForCompletion:
         self.latest_completion_id_lock = threading.Lock()
         self.computing_resource_lock = threading.Lock()
 
-        self.latest_completion_id = [0]
+        self.latest_completion_id = [0]  # Must be list to avoid copy
 
-        self.stop_word = StopWord("\n", tokenizer=self.tokenizer)
+        self.stop_word = StopWord(stop_word="\n", tokenizer=self.tokenizer)
 
     def generate_completion(self, text: str) -> str:
         with self.latest_completion_id_lock:
@@ -191,11 +214,19 @@ class LanguageModelForCompletion:
             if stop_cutoff_completion():
                 return "<canceled>"
             tokenized_prompt = self.tokenizer(text).input_ids
+            count_stop_word = CountStopWord(
+                stop_word="\n",
+                tokenizer=self.tokenizer,
+                initial_length=len(text),
+                stop_word_count=8,
+                min_n_tokens=len(tokenized_prompt) + 32,
+            )
             generated_tokens = self.model.generate(
                 inputs=torch.LongTensor([tokenized_prompt]),
                 max_new_tokens=self.max_new_tokens,
                 do_sample=False,
-                stopping_criteria=[stop_cutoff_completion, self.stop_word],
+                # stopping_criteria=[stop_cutoff_completion, self.stop_word],
+                stopping_criteria=[stop_cutoff_completion, count_stop_word],
             )[0]
             # stopping_criteria=[stop_cutoff_completion])[0]
             generated_text = self.tokenizer.decode(
