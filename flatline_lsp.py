@@ -256,7 +256,7 @@ def completions(
     line_index = params.position.line
     character_index = params.position.character
     prompt = "".join(
-        list(document.lines[max(0, line_index - 15) : line_index])
+        list(document.lines[max(0, line_index - 32) : line_index])
         + [document.lines[line_index][:character_index]]
     )
 
