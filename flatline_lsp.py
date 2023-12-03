@@ -54,7 +54,9 @@ class LlamaCppCausalLM(PreTrainedModel):
                     f" --model-path {model_name}"
                     f" --n-threads {n_threads}"
                     f" --n-gpu_layers {n_gpu_layers}"
-                ).split()
+                ).split(),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
             while True:
                 res = requests.get(
