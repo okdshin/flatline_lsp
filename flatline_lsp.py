@@ -264,16 +264,20 @@ def completions(
         completed_text = "<flatline_lsp_lm_for_completion is not initialized>"
     else:
         completed_text = lm_for_completion.generate_completion(text=prompt)
+    # completed_lines = completed_text.split("\n")
+    # completed_text_list = ["\n".join(completed_lines[:i]) for i in range(1, len(completed_lines))]
+    completed_text_list = [completed_text]
 
     return lsp.CompletionList(
         is_incomplete=True,
         items=[
             lsp.CompletionItem(
+                #label="(FL)" + completed_text.replace("\n", "\\n"),
                 label="(FL)" + completed_text,
                 insert_text=completed_text,
-                insert_text_mode=lsp.InsertTextMode.AdjustIndentation,
                 documentation=completed_text,
             )
+            for completed_text in completed_text_list
         ],
     )
 
