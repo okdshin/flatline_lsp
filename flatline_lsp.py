@@ -79,11 +79,13 @@ class LlamaCppCausalLM(PreTrainedModel):
         input_ids: torch.LongTensor,
         **kwargs,
     ) -> CausalLMOutput:
-        res = requests.post(
-            f"http://{self.backend_server_host}:{self.backend_server_port}/v1/calc_next_token_logits",
-            json=dict(input_tokens=input_ids[0].tolist()),
-        )
-        res.raise_for_status()
+        while True:
+            res = requests.post(
+                f"http://{self.backend_server_host}:{self.backend_server_port}/v1/calc_next_token_logits",
+                json=dict(input_tokens=input_ids[0].tolist()),
+            )
+            if res.status_code == 200:
+                break
         return CausalLMOutput(
             loss=None,
             logits=torch.FloatTensor(res.json()["next_token_logits"]).reshape(
