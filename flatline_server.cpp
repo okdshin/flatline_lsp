@@ -62,6 +62,7 @@ public:
   std::vector<float> calc_next_token_logits(std::vector<int> const &input_ids) {
     llama_batch batch = llama_batch_init(2048, 0); // TODO
     if (is_first(input_ids)) {
+      logger()->info("no kv_cache");
       llama_kv_cache_tokens_rm(ctx_.get(), -1, -1);
       batch.n_tokens = input_ids.size();
       for (size_t i = 0; i < batch.n_tokens; ++i) {
@@ -72,6 +73,7 @@ public:
       }
       batch.logits[batch.n_tokens - 1] = true;
     } else {
+      logger()->info("using kv_cache");
       batch.token[0] = input_ids[input_ids.size() - 1];
       batch.pos[0] = input_ids.size() - 1;
       batch.seq_id[0] = 0;
@@ -179,6 +181,18 @@ int main(int argc, char **argv) {
         res.set_status_and_content(cinatra::status_type::ok,
                                    "Flatline backend server is available");
       });
+  server.set_http_handler<cinatra::GET>(
+      "/config", [&options](cinatra::request &req, cinatra::response &res) {
+        Json::Value config;
+        config["port"] = *options.port;
+        config["model_path"] = *options.model_path;
+        config["numa"] = *options.numa;
+        config["n_threads"] = *options.n_threads;
+        config["n_gpu_layers"] = *options.n_gpu_layers;
+        Json::FastWriter json_fast_writer;
+        res.set_status_and_content(cinatra::status_type::ok,
+                                   json_fast_writer.write(config));
+      });
   auto calc_next_token_logits_func = [&model](cinatra::request &req,
                                               cinatra::response &res) {
     // Header check
@@ -208,7 +222,8 @@ int main(int argc, char **argv) {
     res.add_header("Content-type", "application/json");
     std::string response_json = make_response_json(next_token_logits);
     res.set_status_and_content(cinatra::status_type::ok, response_json.c_str());
-    logger()->info("sent response {}", response_json.c_str());
+    logger()->info("sent response {}",
+                   std::string(response_json.c_str()).substr(0, 128) + "...");
   };
   server.set_http_handler<cinatra::POST>("/v1/calc_next_token_logits",
                                          calc_next_token_logits_func);
