@@ -59,11 +59,14 @@ class LlamaCppCausalLM(PreTrainedModel):
                 stderr=subprocess.DEVNULL,
             )
             while True:
-                res = requests.get(
-                    f"http://{self.backend_server_host}:{self.backend_server_port}"
-                )
-                if res.status_code == 200:
-                    break
+                try:
+                    res = requests.get(
+                        f"http://{self.backend_server_host}:{self.backend_server_port}"
+                    )
+                    if res.status_code == 200:
+                        break
+                except Exception:
+                    pass
                 time.sleep(1)
 
     @property
