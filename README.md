@@ -1,11 +1,6 @@
 # NOTICE
 
-Current code does not work correctly (it stops unintentionally) because of a problem related to 
-
-- https://github.com/openlawlibrary/pygls/issues/240
-- https://github.com/python-lsp/python-lsp-jsonrpc/issues/5
-
-I'm working for resolve it.
+Current code does not work correctly (it stops unintentionally). I'm working for resolve it.
 
 # Flatline LSP
 
