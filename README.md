@@ -1,6 +1,6 @@
 # NOTICE
 
-Current code does not work correctly (it stops unintentionally). I'm working for resolve it.
+Current code does not work correctly (it stops unintentionally). I'm working for resolve it. See https://github.com/okdshin/flatline_lsp/issues/1
 
 # Flatline LSP
 
