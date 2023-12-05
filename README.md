@@ -1,3 +1,9 @@
+# NOTICE
+
+Current code does not work correctly because of a problem related to https://github.com/python-lsp/python-lsp-jsonrpc/issues/5
+
+I'm working for resolve it.
+
 # Flatline LSP
 
 Github Colilot-like LSP code completion server with local LLM powered by llama.cpp
