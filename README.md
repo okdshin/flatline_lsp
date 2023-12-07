@@ -4,7 +4,7 @@ Current code does not work correctly (it stops unintentionally). I'm working for
 
 # Flatline LSP
 
-Github Colilot-like LSP code completion server with local LLM powered by llama.cpp
+Github Copilot-like LSP code completion server with local LLM powered by llama.cpp
 
 ## About model
 
