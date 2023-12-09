@@ -153,6 +153,7 @@ std::string make_response_json(std::vector<float> const &next_token_logits) {
 
 #include <structopt/app.hpp>
 struct app_options {
+  std::optional<std::string> host = "localhost";
   std::optional<int> port = 57045;
   std::optional<std::string> model_path;
   std::optional<bool> numa = true;
@@ -194,9 +195,9 @@ int main(int argc, char **argv) {
   });
   constexpr int status_bad_request = 400;
   std::mutex computing_resource_mutex;
-  auto calc_next_token_logits_func = [&model, &computing_resource_mutex](
-                                         httplib::Request const &req,
-                                         httplib::Response &res) {
+  server.Post("/v1/calc_next_token_logits", [&model, &computing_resource_mutex](
+                                                httplib::Request const &req,
+                                                httplib::Response &res) {
     // Header check
     if (req.get_header_value("Content-type") != "application/json") {
       res.status = status_bad_request;
@@ -205,6 +206,7 @@ int main(int argc, char **argv) {
       logger()->info("Content-type is not application/json");
       return;
     }
+
     // Data check & parse
     std::optional<Json::Value> root_opt = try_to_parse_json(req);
     if (!root_opt) {
@@ -230,9 +232,8 @@ int main(int argc, char **argv) {
     res.set_content(response_json.c_str(), "application/json");
     logger()->info("sent response {}",
                    std::string(response_json.c_str()).substr(0, 128) + "...");
-  };
-  server.Post("/v1/calc_next_token_logits", calc_next_token_logits_func);
-  server.listen("0.0.0.0", *options.port);
+  });
+  server.listen(*options.host, *options.port);
 
   llama_backend_free();
 
