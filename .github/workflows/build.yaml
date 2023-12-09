@@ -180,6 +180,8 @@ jobs:
       - name: Unit test
         id: unit_test
         run: |
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install transformers==4.33.3 tiktoken pygls pyinstaller
           pip install pytest
           python3 -m pytest tests
 
@@ -229,6 +231,8 @@ jobs:
       - name: Unit test
         id: unit_test
         run: |
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install transformers==4.33.3 tiktoken pygls pyinstaller
           pip install pytest
           python3 -m pytest tests
 
