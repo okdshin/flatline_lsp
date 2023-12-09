@@ -257,11 +257,14 @@ def completions(
     document = ls.workspace.get_text_document(params.text_document.uri)
     line_index = params.position.line
     character_index = params.position.character
-    assert lm_for_completion is not None
+    if lm_for_completion is not None:
+        max_context_lines = lm_for_completion.max_context_lines
+    else:
+        max_context_lines = 4
     prompt = "".join(
         list(
             document.lines[
-                max(0, line_index - lm_for_completion.max_context_lines) : line_index
+                max(0, line_index - max_context_lines) : line_index
             ]
         )
         + [document.lines[line_index][:character_index]]

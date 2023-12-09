@@ -59,6 +59,10 @@ def test_language_model_for_completion():
     lm_for_completion = flatline_lsp.LanguageModelForCompletion(
         lang_server=server,
         max_new_tokens=32,
+        min_new_tokens=16,
+        max_context_lines=4,
+        max_new_lines=2,
+        max_context_tokens=128,
         tokenizer=tokenizer,
         model=model,
     )
