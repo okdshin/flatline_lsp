@@ -7,11 +7,14 @@
 #include <tuple>
 
 #include <array>
-#include <cinatra.hpp>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+
+#define CPPHTTPLIB_THREAD_POOL_COUNT 1
+#include <httplib.h>
+#undef CPPHTTPLIB_THREAD_POOL_COUNT
 
 namespace {
 std::shared_ptr<spdlog::logger> logger() {
@@ -115,12 +118,12 @@ private:
 };
 } // namespace
 
-std::optional<Json::Value> try_to_parse_json(cinatra::request const &req) {
+std::optional<Json::Value> try_to_parse_json(httplib::Request const &req) {
   Json::CharReaderBuilder builder;
   const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
   Json::Value root;
   JSONCPP_STRING err;
-  std::string_view body = req.body();
+  std::string_view body = req.body;
   logger()->info("request {}", body);
   if (!reader->parse(body.data(), body.data() + body.size(), &root, &err)) {
     return std::nullopt;
@@ -150,7 +153,7 @@ std::string make_response_json(std::vector<float> const &next_token_logits) {
 
 #include <structopt/app.hpp>
 struct app_options {
-  std::optional<std::string> port = "57045";
+  std::optional<int> port = 57045;
   std::optional<std::string> model_path;
   std::optional<bool> numa = true;
   std::optional<int> n_threads = -1;
@@ -174,60 +177,62 @@ int main(int argc, char **argv) {
       *options.model_path, infer_thread_num, *options.n_gpu_layers);
   logger()->info("model loading finished");
 
-  cinatra::http_server server(server_thread_num);
-  server.listen("0.0.0.0", *options.port);
-  server.set_http_handler<cinatra::GET, cinatra::POST>(
-      "/", [](cinatra::request &req, cinatra::response &res) {
-        res.set_status_and_content(cinatra::status_type::ok,
-                                   "Flatline backend server is available");
-      });
-  server.set_http_handler<cinatra::GET>(
-      "/config", [&options](cinatra::request &req, cinatra::response &res) {
-        Json::Value config;
-        config["port"] = *options.port;
-        config["model_path"] = *options.model_path;
-        config["numa"] = *options.numa;
-        config["n_threads"] = *options.n_threads;
-        config["n_gpu_layers"] = *options.n_gpu_layers;
-        Json::FastWriter json_fast_writer;
-        res.set_status_and_content(cinatra::status_type::ok,
-                                   json_fast_writer.write(config));
-      });
-  auto calc_next_token_logits_func = [&model](cinatra::request &req,
-                                              cinatra::response &res) {
+  httplib::Server server;
+  server.Get("/", [](httplib::Request const &req, httplib::Response &res) {
+    res.set_content("Flatline backend server is available", "text/plain");
+  });
+  server.Get("/config", [&options](httplib::Request const &req,
+                                   httplib::Response &res) {
+    Json::Value config;
+    config["port"] = *options.port;
+    config["model_path"] = *options.model_path;
+    config["numa"] = *options.numa;
+    config["n_threads"] = *options.n_threads;
+    config["n_gpu_layers"] = *options.n_gpu_layers;
+    Json::FastWriter json_fast_writer;
+    res.set_content(json_fast_writer.write(config), "application/json");
+  });
+  constexpr int status_bad_request = 400;
+  std::mutex computing_resource_mutex;
+  auto calc_next_token_logits_func = [&model, &computing_resource_mutex](
+                                         httplib::Request const &req,
+                                         httplib::Response &res) {
     // Header check
     if (req.get_header_value("Content-type") != "application/json") {
-      res.set_status_and_content(
-          cinatra::status_type::bad_request,
-          "\"Content-type\" must be \"application/json\"");
+      res.status = status_bad_request;
+      res.set_content("\"Content-type\" must be \"application/json\"",
+                      "text/plain");
       logger()->info("Content-type is not application/json");
       return;
     }
     // Data check & parse
     std::optional<Json::Value> root_opt = try_to_parse_json(req);
     if (!root_opt) {
-      res.set_status_and_content(cinatra::status_type::bad_request,
-                                 "JSON data is broken");
+      res.status = status_bad_request;
+      res.set_content("JSON data is broken", "text/plain");
       logger()->info("JSON data is broken");
       return;
     }
     Json::Value const &root = *root_opt;
     std::vector<int> input_tokens = get_request_data(root);
 
-    // Calc next token logits
-    std::vector<float> next_token_logits =
-        model.calc_next_token_logits(input_tokens);
+    std::vector<float> next_token_logits;
+    {
+      // lock
+      std::unique_lock lock(computing_resource_mutex);
+
+      // Calc next token logits
+      next_token_logits = model.calc_next_token_logits(input_tokens);
+    }
 
     // Send response
-    res.add_header("Content-type", "application/json");
     std::string response_json = make_response_json(next_token_logits);
-    res.set_status_and_content(cinatra::status_type::ok, response_json.c_str());
+    res.set_content(response_json.c_str(), "application/json");
     logger()->info("sent response {}",
                    std::string(response_json.c_str()).substr(0, 128) + "...");
   };
-  server.set_http_handler<cinatra::POST>("/v1/calc_next_token_logits",
-                                         calc_next_token_logits_func);
-  server.run();
+  server.Post("/v1/calc_next_token_logits", calc_next_token_logits_func);
+  server.listen("0.0.0.0", *options.port);
 
   llama_backend_free();
 
