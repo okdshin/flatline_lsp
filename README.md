@@ -1,7 +1,3 @@
-# NOTICE
-
-Current code does not work correctly (it stops unintentionally). I'm working for resolve it. See https://github.com/okdshin/flatline_lsp/issues/1
-
 # Flatline LSP
 
 Github Copilot-like LSP code completion server with local LLM powered by llama.cpp
