@@ -125,21 +125,23 @@ class CountStopWord(StoppingCriteria):
         self,
         stop_word: str,
         tokenizer: PreTrainedTokenizer,
-        initial_length: int,
+        initial_token_length: int,
         stop_word_count: int,
         min_n_tokens: int,
     ):
         super().__init__()
         self.tokenizer = tokenizer
         self.stop_word = stop_word
-        self.initial_length = initial_length
+        self.initial_token_length = initial_token_length
         self.stop_word_count = stop_word_count
         self.min_n_tokens = min_n_tokens
 
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> bool:
         if len(input_ids[0]) < self.min_n_tokens:
             return False
-        generated_text: str = self.tokenizer.decode(input_ids[0])[self.initial_length:]
+        generated_text: str = self.tokenizer.decode(
+            input_ids[0][self.initial_token_length :]
+        )
         return generated_text.count(self.stop_word) >= self.stop_word_count
 
 
@@ -173,11 +175,21 @@ class LanguageModelForCompletion:
         self,
         lang_server: LanguageServer,
         max_new_tokens: int,
+        min_new_tokens: int,
+        max_context_lines: int,
+        max_new_lines: int,
+        max_context_tokens: int,
         tokenizer: PreTrainedTokenizer,
         model: PreTrainedModel,
     ):
         self.lang_server = lang_server
         self.max_new_tokens = max_new_tokens
+        self.min_new_tokens = min_new_tokens
+        assert self.max_new_tokens >= self.min_new_tokens
+
+        self.max_context_lines = max_context_lines
+        self.max_new_lines = max_new_lines
+        self.max_context_tokens = max_context_tokens
 
         self.tokenizer = tokenizer
         self.model = model
@@ -201,13 +213,15 @@ class LanguageModelForCompletion:
         with self.computing_resource_lock:
             if stop_cutoff_completion():
                 return "<canceled>"
-            tokenized_prompt = self.tokenizer(text).input_ids
+            tokenized_prompt = self.tokenizer(text).input_ids[
+                -self.max_context_tokens :
+            ]
             count_stop_word = CountStopWord(
                 stop_word="\n",
                 tokenizer=self.tokenizer,
-                initial_length=len(text),
-                stop_word_count=8,
-                min_n_tokens=len(tokenized_prompt) + 32,
+                initial_token_length=len(tokenized_prompt),
+                stop_word_count=self.max_new_lines,
+                min_n_tokens=len(tokenized_prompt) + self.min_new_tokens,
             )
             generated_tokens = self.model.generate(
                 inputs=torch.LongTensor([tokenized_prompt]),
@@ -243,8 +257,13 @@ def completions(
     document = ls.workspace.get_text_document(params.text_document.uri)
     line_index = params.position.line
     character_index = params.position.character
+    assert lm_for_completion is not None
     prompt = "".join(
-        list(document.lines[max(0, line_index - 32) : line_index])
+        list(
+            document.lines[
+                max(0, line_index - lm_for_completion.max_context_lines) : line_index
+            ]
+        )
         + [document.lines[line_index][:character_index]]
     )
 
@@ -260,7 +279,7 @@ def completions(
         is_incomplete=True,
         items=[
             lsp.CompletionItem(
-                #label="(FL)" + completed_text.replace("\n", "\\n"),
+                # label="(FL)" + completed_text.replace("\n", "\\n"),
                 label="(FL)" + completed_text,
                 insert_text=completed_text,
                 documentation=completed_text,
@@ -283,6 +302,10 @@ def main() -> None:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("--max-new-tokens", type=int, default=256)
+    parser.add_argument("--min-new-tokens", type=int, default=32)
+    parser.add_argument("--max-context-lines", type=int, default=16)
+    parser.add_argument("--max-new-lines", type=int, default=8)
+    parser.add_argument("--max-context-tokens", type=int, default=1024)
     parser.add_argument(
         "--tokenizer-name",
         type=str,
@@ -319,7 +342,9 @@ def main() -> None:
     parser.add_argument("--backend-server-n-gpu-layers", type=int, default=35)
     args = parser.parse_args()
 
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.tokenizer_name, trust_remote_code=True
+    )
 
     if args.model_name.endswith(".gguf"):
         model = LlamaCppCausalLM(
@@ -332,12 +357,18 @@ def main() -> None:
             n_gpu_layers=args.backend_server_n_gpu_layers,
         )
     else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name, trust_remote_code=True)
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_name, trust_remote_code=True
+        )
 
     global lm_for_completion
     lm_for_completion = LanguageModelForCompletion(
         lang_server=server,
         max_new_tokens=args.max_new_tokens,
+        min_new_tokens=args.min_new_tokens,
+        max_context_lines=args.max_context_lines,
+        max_new_lines=args.max_new_lines,
+        max_context_tokens=args.max_context_tokens,
         tokenizer=tokenizer,
         model=model,
     )
