@@ -1,5 +1,5 @@
 from unittest.mock import Mock
-from typing import Any
+from typing import Any, Dict
 
 from transformers import (
     AutoTokenizer,
@@ -47,7 +47,7 @@ class DummyModel(PreTrainedModel):
         self,
         input_ids: torch.Tensor,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         model_inputs = {"input_ids": input_ids}
         return model_inputs
 
