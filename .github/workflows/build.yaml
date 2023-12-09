@@ -150,6 +150,10 @@ jobs:
           - build: 'openblas'
           - build: 'cublas'
     steps:
+      - name: Clone
+        id: checkout
+        uses: actions/checkout@v1
+
       - name: Get Commit ID
         id: get_commit_id
         run: |
@@ -172,6 +176,12 @@ jobs:
         if: ${{ matrix.build == 'cublas' }}
         with:
           cuda: '11.8.0'
+
+      - name: Unit test
+        id: unit_test
+        run: |
+          pip install pytest
+          python3 -m pytest tests
 
       - name: Install and test
         id: install_and_test
@@ -189,6 +199,10 @@ jobs:
           - build: 'openblas'
           - build: 'cublas'
     steps:
+      - name: Clone
+        id: checkout
+        uses: actions/checkout@v1
+
       - name: Get Commit ID
         id: get_commit_id
         run: |
@@ -211,6 +225,12 @@ jobs:
         if: ${{ matrix.build == 'cublas' }}
         with:
           cuda: '11.8.0'
+
+      - name: Unit test
+        id: unit_test
+        run: |
+          pip install pytest
+          python3 -m pytest tests
 
       - name: Install and test
         id: install_and_test
