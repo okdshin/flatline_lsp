@@ -94,6 +94,87 @@ jobs:
           name: flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
           path: dist/flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
 
+  build-release-windows-latest:
+    runs-on: windows-latest
+
+    env:
+      OPENBLAS_VERSION: 0.3.23
+
+    strategy:
+      matrix:
+        include:
+          - build: 'openblas'
+            defines: '-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS'
+
+    steps:
+      - name: Clone
+        id: checkout
+        uses: actions/checkout@v1
+
+      - name: Common dependencies
+        id: depends
+        run: |
+          python3 -m pip install cmake
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install transformers==4.33.3 tiktoken pygls pyinstaller
+
+      - name: Download OpenBLAS
+        id: get_openblas
+        if: ${{ matrix.build == 'openblas' }}
+        run: |
+          curl.exe -o $env:RUNNER_TEMP/openblas.zip -L "https://github.com/xianyi/OpenBLAS/releases/download/v${env:OPENBLAS_VERSION}/OpenBLAS-${env:OPENBLAS_VERSION}-x64.zip"
+          curl.exe -o $env:RUNNER_TEMP/OpenBLAS.LICENSE.txt -L "https://github.com/xianyi/OpenBLAS/raw/v${env:OPENBLAS_VERSION}/LICENSE"
+          mkdir $env:RUNNER_TEMP/openblas
+          tar.exe -xvf $env:RUNNER_TEMP/openblas.zip -C $env:RUNNER_TEMP/openblas
+          $vcdir = $(vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath)
+          $msvc = $(join-path $vcdir $('VC\Tools\MSVC\'+$(gc -raw $(join-path $vcdir 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt')).Trim()))
+          $lib =  $(join-path $msvc 'bin\Hostx64\x64\lib.exe')
+          & $lib /machine:x64 "/def:${env:RUNNER_TEMP}/openblas/lib/libopenblas.def" "/out:${env:RUNNER_TEMP}/openblas/lib/openblas.lib" /name:openblas.dll
+
+      - name: Build backend server
+        id: cmake_build_backend_server
+        run: |
+          cmake -B build_backend_server -S . -DLLAMA_NATIVE=OFF ${{ matrix.defines }}
+          cmake --build build_backend_server --config Release
+
+      - name: Build lsp server
+        id: pyinstaller_build_lsp_server
+        run: |
+          pyinstaller flatline_lsp.py \
+            --copy-metadata tqdm \
+            --copy-metadata regex \
+            --copy-metadata requests \
+            --copy-metadata packaging \
+            --copy-metadata filelock \
+            --copy-metadata numpy \
+            --copy-metadata tokenizers \
+            --copy-metadata huggingface-hub \
+            --copy-metadata safetensors \
+            --copy-metadata pyyaml \
+            --copy-metadata torch \
+            --hidden-import=tiktoken_ext.openai_public \
+            --hidden-import=tiktoken_ext \
+            ;
+
+      - name: Make package
+        id: make_package
+        shell: bash
+        run: |
+          mkdir -p ./dist/flatline_lsp/_internal/flatline/model_data
+          mkdir -p ./dist/flatline_lsp/_internal/flatline/backend_server
+          mv build_backend_server/bin/flatline-server ./dist/flatline_lsp/_internal/flatline/backend_server/flatline-server
+          mkdir -p ./dist/flatline_lsp/license
+          find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
+          cd dist
+          7z a flatline_lsp_windows_${{ matrix.build }}.zip flatline_lsp
+
+      - name: Upload package
+        id: upload_package
+        uses: actions/upload-artifact@v3
+        with:
+          name: flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
+          path: dist/flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
+
   create-release:
     runs-on: ubuntu-latest
     needs: [build-release-ubuntu-2004]
