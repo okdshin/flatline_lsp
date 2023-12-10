@@ -46,6 +46,10 @@ rm -R $HOME/.flatline_lsp
 
 ## Editor setup
 
+### VSCode
+
+See [vscode-flatline-lsp-client](https://github.com/okdshin/vscode-flatline-lsp-client)
+
 ### Neovim
 
 Add this snippet to `plugins.lua`
