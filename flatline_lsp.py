@@ -285,6 +285,7 @@ def completions(
                 # label="(FL)" + completed_text.replace("\n", "\\n"),
                 label="(FL)" + completed_text,
                 insert_text=completed_text,
+                insert_text_mode=lsp.InsertTextMode(1),  # AsIs
                 documentation=completed_text,
             )
             for completed_text in completed_text_list
