@@ -104,7 +104,7 @@ jobs:
       matrix:
         include:
           - build: 'openblas'
-            defines: '-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS'
+            defines: '-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS -DBLAS_INCLUDE_DIRS="$env:RUNNER_TEMP/openblas/include" -DBLAS_LIBRARIES="$env:RUNNER_TEMP/openblas/lib/openblas.lib"'
 
     steps:
       - name: Clone
@@ -136,6 +136,13 @@ jobs:
         run: |
           cmake -B build_backend_server -S . -DLLAMA_NATIVE=OFF ${{ matrix.defines }}
           cmake --build build_backend_server --config Release
+
+      - name: Add libopenblas.dll
+        id: add_libopenblas_dll
+        if: ${{ matrix.build == 'openblas' }}
+        run: |
+          cp $env:RUNNER_TEMP/openblas/bin/libopenblas.dll ./build_backend_server/bin/Release/openblas.dll
+          cp $env:RUNNER_TEMP/OpenBLAS.LICENSE.txt ./build_backend_server/bin/Release/OpenBLAS-${env:OPENBLAS_VERSION}.txt
 
       - name: Build lsp server
         id: pyinstaller_build_lsp_server
@@ -172,8 +179,8 @@ jobs:
         id: upload_package
         uses: actions/upload-artifact@v3
         with:
-          name: flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
-          path: dist/flatline_lsp_ubuntu2004_${{ matrix.build }}.zip
+          name: flatline_lsp_windows_${{ matrix.build }}.zip
+          path: dist/flatline_lsp_windows_${{ matrix.build }}.zip
 
   create-release:
     runs-on: ubuntu-latest
@@ -202,8 +209,8 @@ jobs:
           draft: false
           prerelease: true
 
-      - name: Upload release openblas asset
-        id: upload_release_openblas_asset
+      - name: Upload release ubuntu2004 openblas asset
+        id: upload_release_ubuntu2004_openblas_asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -213,8 +220,8 @@ jobs:
           asset_name: flatline_lsp_ubuntu2004_openblas.zip
           asset_content_type: application/zip
 
-      - name: Upload release cublas asset
-        id: upload_release_cublas_asset
+      - name: Upload release ubuntu2004 cublas asset
+        id: upload_release_ubuntu2004_cublas_asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -222,6 +229,17 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: flatline_lsp_ubuntu2004_cublas.zip/flatline_lsp_ubuntu2004_cublas.zip
           asset_name: flatline_lsp_ubuntu2004_cublas.zip
+          asset_content_type: application/zip
+
+      - name: Upload release windows openblas asset
+        id: upload_release_windows_openblas_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: flatline_lsp_windows_openblas.zip/flatline_lsp_windows_openblas.zip
+          asset_name: flatline_lsp_windows_openblas.zip
           asset_content_type: application/zip
 
   test-on-ubuntu-2004:
