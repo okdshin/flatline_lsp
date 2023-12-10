@@ -146,6 +146,7 @@ jobs:
 
       - name: Build lsp server
         id: pyinstaller_build_lsp_server
+        shell: bash
         run: |
           pyinstaller flatline_lsp.py \
             --copy-metadata tqdm \
