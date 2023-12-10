@@ -170,7 +170,8 @@ jobs:
         run: |
           mkdir -p ./dist/flatline_lsp/_internal/flatline/model_data
           mkdir -p ./dist/flatline_lsp/_internal/flatline/backend_server
-          mv build_backend_server/bin/flatline-server ./dist/flatline_lsp/_internal/flatline/backend_server/flatline-server
+          find build_backend_server
+          mv build_backend_server/bin/flatline-server.exe ./dist/flatline_lsp/_internal/flatline/backend_server/flatline-server.exe
           mkdir -p ./dist/flatline_lsp/license
           find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
           cd dist
