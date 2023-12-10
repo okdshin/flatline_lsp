@@ -3,7 +3,7 @@ set -eu
 #set -x
 
 backend_type=""
-release_version="v0.0.0_195cd0a"
+release_version="v0.0.0_83cdeb6"
 
 help_message="
 Usage: ./install.sh [OPTIONS]
