@@ -171,9 +171,9 @@ jobs:
           mkdir -p ./dist/flatline_lsp/_internal/flatline/model_data
           mkdir -p ./dist/flatline_lsp/_internal/flatline/backend_server
           find build_backend_server
-          mv build_backend_server/bin/flatline-server.exe ./dist/flatline_lsp/_internal/flatline/backend_server/flatline-server.exe
+          mv build_backend_server/bin/Release/flatline-server.exe ./dist/flatline_lsp/_internal/flatline/backend_server/flatline-server.exe
           mkdir -p ./dist/flatline_lsp/license
-          find build_backend_server/bin -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
+          find build_backend_server/bin/Release -name \*.LICENSE.txt | xargs -I{} cp {} ./dist/flatline_lsp/license/
           cd dist
           7z a flatline_lsp_windows_${{ matrix.build }}.zip flatline_lsp
 
